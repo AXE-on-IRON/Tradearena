@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface text-text font-sans antialiased;
+    scrollbar-width: thin;
+    scrollbar-color: #21262d #0d1117;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-surface; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded; }
+}
+
+@layer components {
+  .card {
+    @apply bg-panel border border-border rounded-lg;
+  }
+
+  .btn-primary {
+    @apply bg-accent text-surface font-semibold px-4 py-2 rounded-md
+           hover:bg-accent-dim transition-colors text-sm;
+  }
+
+  .btn-danger {
+    @apply bg-danger text-white font-semibold px-4 py-2 rounded-md
+           hover:bg-red-700 transition-colors text-sm;
+  }
+
+  .btn-ghost {
+    @apply border border-border text-muted px-4 py-2 rounded-md
+           hover:border-accent hover:text-accent transition-colors text-sm;
+  }
+
+  .up   { @apply text-accent; }
+  .down { @apply text-danger; }
+  .flat { @apply text-muted; }
+
+  .mono { @apply font-mono; }
+
+  .flash-up   { animation: flashUp 0.4s ease; }
+  .flash-down { animation: flashDown 0.4s ease; }
+}
+
+@keyframes flashUp {
+  0%   { background-color: rgba(0, 229, 160, 0.3); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flashDown {
+  0%   { background-color: rgba(248, 81, 73, 0.3); }
+  100% { background-color: transparent; }
+}
+
+/* TradingView Lightweight Charts override */
+.tv-chart-container {
+  height: 100%;
+  width: 100%;
+}

@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+*.pyo
+
+# Database (local only)
+backend/*.db
+backend/tradearena.db
+
+# Environment
+.env
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

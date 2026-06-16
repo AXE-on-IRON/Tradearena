@@ -1,0 +1,17 @@
+{
+  "name": "tradearena",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\" --names \"API,UI\" --prefix-colors \"cyan,magenta\"",
+    "backend": "cd backend && python app.py",
+    "frontend": "cd frontend && npm run dev",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "setup": "npm run install:backend && npm run install:frontend && cp -n .env.example .env || true",
+    "build": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
