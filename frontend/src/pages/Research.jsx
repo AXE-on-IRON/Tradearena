@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import axios from 'axios'
 import { useTradingStore } from '../store/tradingStore'
 import PriceChart from '../components/PriceChart'
@@ -29,18 +29,31 @@ export default function Research() {
   const [quoteInfo, setQuoteInfo] = useState(null)
   const [loadingQuote, setLoadingQuote] = useState(false)
 
+  // FIX: debounce ref so search doesn't fire on every keystroke
+  const debounceRef = useRef(null)
+
   const livePrice = prices[selectedSymbol]
 
-  const handleSearch = async (q) => {
+  const handleSearch = (q) => {
     setSearchQ(q)
-    if (!q || q.length < 2) { setSearchResults([]); return }
-    setSearching(true)
-    try {
-      const { data } = await axios.get(`/api/market/search?q=${encodeURIComponent(q)}`)
-      setSearchResults(data)
-    } finally {
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (!q || q.length < 1) {
+      setSearchResults([])
       setSearching(false)
+      return
     }
+
+    setSearching(true)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const { data } = await axios.get(`/api/market/search?q=${encodeURIComponent(q)}`)
+        setSearchResults(data)
+      } finally {
+        setSearching(false)
+      }
+    }, 250)
   }
 
   const handleSelect = async (symbol, name, assetClass, currency, exchange) => {
@@ -80,7 +93,9 @@ export default function Research() {
           />
           {(searchResults.length > 0 || searching) && (
             <div className="absolute top-full mt-1 w-full bg-panel border border-border rounded-md shadow-xl z-50 max-h-72 overflow-auto">
-              {searching && <div className="px-3 py-2 text-muted text-xs">Searching…</div>}
+              {searching && searchResults.length === 0 && (
+                <div className="px-3 py-2 text-muted text-xs">Searching…</div>
+              )}
               {searchResults.map((r, i) => (
                 <div
                   key={i}

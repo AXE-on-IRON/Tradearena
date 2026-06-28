@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import axios from 'axios'
 import { useTradingStore } from '../store/tradingStore'
 import MarketTable from '../components/MarketTable'
@@ -15,7 +15,6 @@ const TABS = [
   { id: 'crypto',      label: '🪙 Crypto',       endpoint: '/api/market/crypto' },
 ]
 
-// Popular stock lists by region
 const STOCK_LISTS = {
   'US':    ['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','JPM','GS','BRK-B','V','WMT','JNJ','UNH','XOM'],
   'HK':    ['0700.HK','0005.HK','9988.HK','2318.HK','0941.HK','1299.HK','0388.HK','2020.HK','1810.HK','9999.HK'],
@@ -36,6 +35,9 @@ export default function Markets() {
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching]       = useState(false)
   const { selectedSymbol, selectInstrument } = useTradingStore()
+
+  // FIX: debounce ref so we don't fire a request on every keystroke
+  const debounceRef = useRef(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -59,16 +61,28 @@ export default function Markets() {
 
   useEffect(() => { loadData() }, [loadData])
 
-  const handleSearch = async (q) => {
+  // FIX: debounced search — waits 250ms after typing stops before calling the API,
+  // and the backend search is now an instant local lookup (no more slow external API call)
+  const handleSearch = (q) => {
     setSearchQ(q)
-    if (!q || q.length < 2) { setSearchResults([]); return }
-    setSearching(true)
-    try {
-      const { data: results } = await axios.get(`/api/market/search?q=${encodeURIComponent(q)}`)
-      setSearchResults(results)
-    } finally {
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (!q || q.length < 1) {
+      setSearchResults([])
       setSearching(false)
+      return
     }
+
+    setSearching(true)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const { data: results } = await axios.get(`/api/market/search?q=${encodeURIComponent(q)}`)
+        setSearchResults(results)
+      } finally {
+        setSearching(false)
+      }
+    }, 250)
   }
 
   const handleSelectResult = (r) => {
@@ -99,7 +113,6 @@ export default function Markets() {
               placeholder="Search any symbol…"
               className="w-full bg-surface border border-border rounded-md pl-8 pr-3 py-1.5 text-sm text-text placeholder-muted focus:outline-none focus:border-accent"
             />
-            {/* Dropdown */}
             {searchResults.length > 0 && (
               <div className="absolute top-full mt-1 w-full bg-panel border border-border rounded-md shadow-xl z-50 max-h-64 overflow-auto">
                 {searchResults.map((r, i) => (
@@ -114,7 +127,7 @@ export default function Markets() {
                 ))}
               </div>
             )}
-            {searching && (
+            {searching && searchResults.length === 0 && (
               <div className="absolute top-full mt-1 w-full bg-panel border border-border rounded-md px-3 py-2 text-muted text-xs">
                 Searching…
               </div>
@@ -165,7 +178,6 @@ export default function Markets() {
 
         {/* Main content: table + chart+order */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Market table */}
           <div className="w-[420px] flex-shrink-0 border-r border-border overflow-auto">
             {loading ? (
               <div className="flex items-center justify-center h-32 text-muted text-sm animate-pulse">
@@ -179,7 +191,6 @@ export default function Markets() {
             )}
           </div>
 
-          {/* Chart + order panel */}
           <div className="flex-1 flex gap-0 overflow-hidden">
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="px-4 py-2 border-b border-border text-sm font-semibold text-text flex items-center gap-2">
