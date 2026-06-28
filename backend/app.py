@@ -6,7 +6,7 @@ import asyncio
 import json
 import os
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -47,8 +47,8 @@ app.add_middleware(
 # ─── WebSocket connection manager ────────────────────────────────────────────
 class ConnectionManager:
     def __init__(self):
-        self.active: list[WebSocket] = []
-        self.subscriptions: dict[WebSocket, set] = {}
+        self.active: List[WebSocket] = []
+        self.subscriptions: Dict[WebSocket, set] = {}
 
     async def connect(self, ws: WebSocket):
         await ws.accept()
@@ -59,7 +59,7 @@ class ConnectionManager:
         self.active.remove(ws)
         self.subscriptions.pop(ws, None)
 
-    def subscribe(self, ws: WebSocket, symbols: list[str]):
+    def subscribe(self, ws: WebSocket, symbols: List[str]):
         self.subscriptions[ws].update(symbols)
 
     async def broadcast(self, data: dict):
